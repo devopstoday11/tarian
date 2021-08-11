@@ -12,6 +12,7 @@ spec:
       labels:
         app: tarian-cluster-agent
     spec:
+      serviceAccountName: kube-rbac-proxy
       containers:
       - name: tarian-cluster-agent
         image: localhost:5000/tarian-cluster-agent:latest
@@ -23,6 +24,15 @@ spec:
         ports:
         - containerPort: 50052
           name: grpc
+      - name: kube-rbac-proxy
+        image: quay.io/brancz/kube-rbac-proxy:v0.11.0
+        args:
+        - "--secure-listen-address=0.0.0.0:8443"
+        - "--upstream=http://127.0.0.1:50052/"
+        - "--v=10"
+        ports:
+        - containerPort: 8443
+          name: https
 ---
 apiVersion: v1
 kind: Service
@@ -37,6 +47,9 @@ spec:
     targetPort: 50052
     nodePort: 31052
     name: grpc
+  - port: 443
+    targetPort: 8443
+    name: tls
   selector:
     app: tarian-cluster-agent
 ---

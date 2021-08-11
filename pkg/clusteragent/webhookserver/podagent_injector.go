@@ -25,6 +25,7 @@ type PodAgentContainerConfig struct {
 	LogEncoding string
 	Host        string
 	Port        string
+	TlsEnabled  string
 }
 
 const (
@@ -91,6 +92,7 @@ func (p *PodAgentInjector) Handle(ctx context.Context, req admission.Request) ad
 			"--pod-name=$(POD_NAME)",
 			"--pod-uid=$(POD_UID)",
 			"--pod-labels-file=/etc/podinfo/labels",
+			"--tls-enabled=" + p.config.TlsEnabled,
 		},
 		VolumeMounts: volumeMounts,
 	}

@@ -6,3 +6,7 @@ resources:
 - cert_rotator_role_binding.yaml
 - cert_rotator_clusterrole.yaml
 - cert_rotator_clusterrole_binding.yaml
+- rbac_proxy_clusterrole.yaml
+- rbac_proxy_clusterrole_binding.yaml
+- pod_agent_clusterrole.yaml
+- pod_agent_clusterrole_binding.yaml

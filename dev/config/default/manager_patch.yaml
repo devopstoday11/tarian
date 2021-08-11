@@ -13,6 +13,8 @@ spec:
         args:
         - --log-encoding=json
         - run-webhook-server
+        - --cluster-agent-port=443
+        - --cluster-agent-tls-enabled=true
         name: manager
         securityContext:
           allowPrivilegeEscalation: true

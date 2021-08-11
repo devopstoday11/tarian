@@ -36,6 +36,7 @@ func SetLogger(l *zap.SugaredLogger) {
 type PodAgent struct {
 	clusterAgentAddress string
 	grpcConn            *grpc.ClientConn
+	grpcDialOpts        []grpc.DialOption
 	configClient        tarianpb.ConfigClient
 	eventClient         tarianpb.EventClient
 	podName             string
@@ -50,10 +51,15 @@ type PodAgent struct {
 	cancelCtx  context.Context
 }
 
-func NewPodAgent(clusterAgentAddress string) *PodAgent {
+func NewPodAgent(clusterAgentAddress string, grpcDialOpts []grpc.DialOption) *PodAgent {
 	ctx, cancel := context.WithCancel(context.Background())
 
-	return &PodAgent{clusterAgentAddress: clusterAgentAddress, cancelCtx: ctx, cancelFunc: cancel}
+	return &PodAgent{
+		clusterAgentAddress: clusterAgentAddress,
+		cancelCtx:           ctx,
+		cancelFunc:          cancel,
+		grpcDialOpts:        grpcDialOpts,
+	}
 }
 
 func (p *PodAgent) SetPodLabels(labels []*tarianpb.Label) {
@@ -74,7 +80,7 @@ func (p *PodAgent) SetNamespace(namespace string) {
 
 func (p *PodAgent) Dial() {
 	var err error
-	p.grpcConn, err = grpc.Dial(p.clusterAgentAddress, grpc.WithInsecure())
+	p.grpcConn, err = grpc.Dial(p.clusterAgentAddress, p.grpcDialOpts...)
 	p.configClient = tarianpb.NewConfigClient(p.grpcConn)
 	p.eventClient = tarianpb.NewEventClient(p.grpcConn)
 

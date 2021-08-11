@@ -2,6 +2,8 @@ package main
 
 import (
 	"bufio"
+	"crypto/tls"
+	"crypto/x509"
 	"log"
 	"os"
 	"os/signal"
@@ -12,6 +14,8 @@ import (
 	"github.com/devopstoday11/tarian/pkg/podagent"
 	"github.com/devopstoday11/tarian/pkg/tarianpb"
 	cli "github.com/urfave/cli/v2"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials"
 )
 
 const (
@@ -68,6 +72,16 @@ func getCliApp() *cli.App {
 						Usage: "Host port of the cluster agent to communicate with",
 						Value: defaultClusterAgentPort,
 					},
+					&cli.BoolFlag{
+						Name:  "tls-enabled",
+						Usage: "If enabled, it will communicate with the cluster agent using TLS",
+						Value: false,
+					},
+					&cli.BoolFlag{
+						Name:  "tls-insecure-skip-verify",
+						Usage: "If set to true, it will skip cluster agent's certificate chain and hostname verification",
+						Value: true,
+					},
 					&cli.StringFlag{
 						Name:  "pod-labels-file",
 						Usage: "File path containing pod labels. This is intended to be a file from Kubernetes DownwardAPIVolumeFile",
@@ -100,7 +114,19 @@ func run(c *cli.Context) error {
 	podagent.SetLogger(logger)
 	logger.Infow("tarian-pod-agent is running")
 
-	agent := podagent.NewPodAgent(c.String("host") + ":" + c.String("port"))
+	dialOpts := []grpc.DialOption{}
+	if c.Bool("tls-enabled") {
+		// TODO: handle err
+		certPool, _ := x509.SystemCertPool()
+		tlsConfig := &tls.Config{ServerName: "", RootCAs: certPool}
+
+		tlsConfig.InsecureSkipVerify = c.Bool("tls-insecure-skip-verify")
+		dialOpts = append(dialOpts, grpc.WithTransportCredentials(credentials.NewTLS(tlsConfig)))
+	} else {
+		dialOpts = append(dialOpts, grpc.WithInsecure())
+	}
+
+	agent := podagent.NewPodAgent(c.String("host")+":"+c.String("port"), dialOpts)
 
 	podLabelsFile := c.String("pod-labels-file")
 	if podLabelsFile != "" {

@@ -5,6 +5,7 @@ import (
 	"net"
 	"os"
 	"os/signal"
+	"strconv"
 	"syscall"
 
 	"github.com/devopstoday11/tarian/pkg/clusteragent"
@@ -108,6 +109,11 @@ func getCliApp() *cli.App {
 						Usage: "Port of cluster-agent",
 						Value: "80",
 					},
+					&cli.BoolFlag{
+						Name:  "cluster-agent-tls-enabled",
+						Usage: "Controls whether cluster-agent has TLS enabled",
+						Value: false,
+					},
 					&cli.StringFlag{
 						Name:  "health-probe-bind-address",
 						Usage: "Health probe bind address",
@@ -188,6 +194,7 @@ func runWebhookServer(c *cli.Context) error {
 		LogEncoding: c.String("log-encoding"),
 		Host:        c.String("cluster-agent-host"),
 		Port:        c.String("cluster-agent-port"),
+		TlsEnabled:  strconv.FormatBool(c.Bool("cluster-agent-tls-enabled")),
 	}
 
 	mgr := webhookserver.NewManager(c.Int("port"), c.String("health-probe-bind-address"), c.Bool("enable-leader-election"))
