@@ -25,10 +25,11 @@ spec:
         - containerPort: 50052
           name: grpc
       - name: kube-rbac-proxy
-        image: quay.io/brancz/kube-rbac-proxy:v0.11.0
+        image: localhost:5000/kube-rbac-proxy:latest
         args:
         - "--secure-listen-address=0.0.0.0:8443"
         - "--upstream=http://127.0.0.1:50052/"
+        - "--upstream-force-h2c"
         - "--v=10"
         ports:
         - containerPort: 8443

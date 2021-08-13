@@ -5,6 +5,7 @@ import (
 	"crypto/sha256"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"os"
 	"regexp"
 	"sync"
@@ -14,6 +15,7 @@ import (
 	psutil "github.com/shirou/gopsutil/process"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/metadata"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
@@ -147,6 +149,9 @@ func (p *PodAgent) loopSyncConstraints(ctx context.Context) error {
 
 func (p *PodAgent) SyncConstraints() {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	token, _ := ioutil.ReadFile("/run/secrets/kubernetes.io/serviceaccount/token")
+	ctx = metadata.AppendToOutgoingContext(ctx, "Authorization", "Bearer "+string(token))
+	logger.Infow(">>> using token", "token", string(token))
 
 	r, err := p.configClient.GetConstraints(ctx, &tarianpb.GetConstraintsRequest{Namespace: p.namespace, Labels: p.podLabels})
 
