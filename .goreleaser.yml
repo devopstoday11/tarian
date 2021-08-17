@@ -36,6 +36,22 @@ builds:
     goarch:
       - amd64
 
+signs:
+  - cmd: cosign
+    artifacts: all
+    args:
+    - sign-blob
+    - -key
+    - cosign.key
+    - -output
+    - ${signature}
+    - ${artifact}
+
+archives:
+  - format_overrides:
+    - goos: windows
+      format: zip
+
 dockers:
   - ids:
     - tarian-server
